@@ -7,7 +7,7 @@
 DELIMITER $$
 
 CREATE PROCEDURE ComputeAverageScoreForUser(
-    user_id INT
+    p_user_id INT
 )
 -- Begin main body
 BEGIN
@@ -15,13 +15,14 @@ BEGIN
 
     -- Compute the average for a user identified by its ID
     -- from the corrections table.
-    SELECT AVG(score) INTO average FROM corrections
-    WHERE user_id = user_id;
-   
+    SELECT AVG(score) INTO average
+    FROM corrections
+    WHERE user_id = p_user_id;
+    
     -- Update its average_score in the users table.
     UPDATE users
     SET average_score = average
-    WHERE id = user_id;
+    WHERE id = p_user_id;
 END$$
 -- END main body
 DELIMITER ;
