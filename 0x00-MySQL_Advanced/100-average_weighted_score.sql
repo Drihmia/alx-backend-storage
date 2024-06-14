@@ -14,18 +14,13 @@ BEGIN
 DECLARE average_weight FLOAT DEFAULT 0;
 
 -- performe A (SUMPRODUCT/ SUM of weights) function similar in Excel
-SELECT SUM(score * weight) / SUM(weight)
+SELECT SUM(corrections.score * projects.weight) / SUM(projects.weight)
 INTO average_weight
-FROM (
-    -- Get a table of two fields : score and project's
-    -- weight using inner join
-    SELECT
-        corrections.score,
-        projects.weight
-    FROM corrections, projects
-    WHERE corrections.project_id = projects.id
-    AND corrections.user_id = p_user_id
-    ) AS red;
+FROM corrections
+INNER JOIN projects
+    ON corrections.project_id = projects.id
+WHERE corrections.user_id = p_user_id;
+
 
 -- Update its average_score in the users table.
 UPDATE users
