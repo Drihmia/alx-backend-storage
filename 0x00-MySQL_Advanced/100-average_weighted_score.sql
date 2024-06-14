@@ -1,6 +1,6 @@
--- A SQL script that creates a stored procedure ComputeAverageWeightedScoreForUser
--- that computes and store the average score for a student.
--- Note: An average score can be a decimal
+-- A SQL script that creates a stored procedure called:
+-- ComputeAverageWeightedScoreForUser
+-- that computes and store the  average weighted score for a student.
 -- Procedure ComputeAverageScoreForUser is taking 1 input:
 -- user_id, a users.id value (assumimg user_id is linked to an existing users)
 
@@ -11,30 +11,26 @@ CREATE PROCEDURE ComputeAverageWeightedScoreForUser(
 )
 -- Begin main body
 BEGIN
-    DECLARE average float default 0;
+DECLARE average_weight FLOAT DEFAULT 0;
 
-    CREATE TEMPORARY TABLE scores (
-        t_project_id INT,
-        t_score INT
-    )
+-- performe A (SUMPRODUCT/ SUM of weights) function similar in Excel
+SELECT SUM(score * weight) / SUM(weight)
+INTO average_weight
+FROM (
+    -- Get a table of two fields : score and project's
+    -- weight using inner join
+    SELECT
+        corrections.score,
+        projects.weight
+    FROM corrections, projects
+    WHERE corrections.project_id = projects.id
+    AND corrections.user_id = p_user_id
+    ) AS red;
 
-    insert into scores (t_project_id, t_score)
-    select (project_id, score)
-    from corrections
-    WHERE user_id = p_user_id;
-
-    select * from scores;
+-- Update its average_score in the users table.
+UPDATE users
+SET average_score = average_weight
+WHERE id = p_user_id;
 END$$
 -- END main body
 DELIMITER ;
-
-    -- Compute the average for a user identified by its ID
-    -- from the corrections table.
-/*    SELECT AVG(score) INTO average*/
-    /*FROM corrections*/
-    /*WHERE user_id = p_user_id;*/
-    
-    -- Update its average_score in the users table.
-/*    UPDATE users*/
-    /*SET average_score = average*/
-    /*WHERE id = p_user_id;*/
