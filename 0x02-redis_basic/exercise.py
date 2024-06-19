@@ -23,4 +23,7 @@ class Cache:
         random_key = uuid4()
         self._redis.set(str(random_key), data)
 
+        # trigger the background save.
+        self._redis.bgsave()
+
         return str(random_key)
