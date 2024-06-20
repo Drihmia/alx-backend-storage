@@ -31,7 +31,7 @@ def count_calls(method: Callable) -> Callable:
     def wrapper(self, *args, **kwargs):
         """ wrapper """
         self._redis.incr(method.__qualname__)
-        return method(self, *args, **kwargs)  # line 19
+        return method(self, *args, **kwargs)
     return wrapper
 
 
@@ -50,10 +50,10 @@ def call_history(method: Callable) -> Callable:
         3) "faef27a5-253a-4514-9258-afa2539fc77e"
     """
     @functools.wraps(method)
-    def wrapper(self, *args):
+    def wrapper(self, *args, **kwargs):
         """ wrapper """
         self._redis.rpush(f"{method.__qualname__}:inputs", str(args[0:2]))
-        temp_ret = method(self, *args)  # line 40
+        temp_ret = method(self, *args, **kwargs)
         self._redis.rpush(f"{method.__qualname__}:outputs", str(temp_ret))
         return temp_ret
     return wrapper
