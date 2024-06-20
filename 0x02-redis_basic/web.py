@@ -24,10 +24,9 @@ def get_page(url: str) -> str:
         return cached_content.decode('utf-8')
 
     with requests.get(url) as res:
-        if res.status_code == 200:
-            return res.text
-        else:
-            return ""
+        content = res.text
+        r.setex(f"count:{url}", 10, content)
+        return content
 
 
 if __name__ == "__main__":
