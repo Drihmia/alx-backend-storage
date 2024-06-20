@@ -74,7 +74,7 @@ class Cache:
     @call_history
     def get(self,
             key: str,
-            fn: Optional[Callable[[Any], T]] = lambda x: x
+            fn: Callable[[Any], T] = lambda x: x
             ) -> Optional[Union[T, bytes]]:
         """
         A method that gets back the data in Redis using provided key
