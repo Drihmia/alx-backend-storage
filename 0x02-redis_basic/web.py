@@ -9,20 +9,20 @@ from typing import Callable
 def decorator(method: Callable) -> Callable:
     """ decorator Description """
     @functools.wraps(method)
-    def wrapper(*args, **kwargs):
+    def wrapper(url: str) -> str:
         """ wrapper Description """
-        if (r.ttl(f"count:{args[-1]}")) == -2:
-            r.setex(f"count:{args[-1]}", 10, 1)
-        else:
-            r.incrby(f"count:{args[-1]}", 1)
-        # print(r.get(f"count:{args[-1]}").decode('UTF-8'))
-        return method(*args, **kwargs)
+        r.incr(f"count:{url}")
+        return method(url)
     return wrapper
 
 
 @decorator
 def get_page(url: str) -> str:
     """ Description """
+    cached_content = r.get(f"cache:{url}")
+    if cached_content:
+        return cached_content.decode('utf-8')
+
     with requests.get(url) as res:
         if res.status_code == 200:
             return res.text
