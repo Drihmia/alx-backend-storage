@@ -64,13 +64,13 @@ class Cache:
 
         Return: the random key.
         """
-        random_key = uuid4()
-        self._redis.set(str(random_key), data)
+        random_key = str(uuid4())
+        self._redis.set(random_key, data)
 
         # trigger the background save.
         # self._redis.bgsave()
 
-        return str(random_key)
+        return random_key
 
     @count_calls
     @call_history
