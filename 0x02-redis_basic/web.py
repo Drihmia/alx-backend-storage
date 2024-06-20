@@ -25,7 +25,7 @@ def get_page(url: str) -> str:
 
     with requests.get(url) as res:
         content = res.text
-        r.setex(f"count:{url}", 10, content)
+        r.setex(f"cache:{url}", 10, content)
         return content
 
 
