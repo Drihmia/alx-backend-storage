@@ -9,6 +9,22 @@ import uuid
 T = TypeVar('T')
 
 
+def replay(self, string: Callable) -> None:
+    """
+    A method display the history of calls of a particular function.
+    """
+
+    name = string.__qualname__
+    n_calls = self._redis.get(name).decode('utf-8')
+
+    print(f"{name} was called {n_calls} times:")
+    inputs_list = self._redis.lrange(f"{name}:inputs", 0, -1)
+    outputs_list = self._redis.lrange(f"{name}:outputs", 0, -1)
+    for i, j in zip(inputs_list, outputs_list):
+        print(
+            f"{name}(*{i.decode('utf-8')}) -> {j.decode('utf-8')}")
+
+
 def count_calls(method: Callable) -> Callable:
     """
     A decorator that count how many times methods of the Cache class are called
@@ -41,7 +57,7 @@ def call_history(method: Callable) -> Callable:
         """ wrapper """
         self._redis.rpush(f"{method.__qualname__}:inputs", str(args[0:2]))
         temp_ret = method(self, *args)  # line 40
-        self._redis.rpush(f"{method.__qualname__}:outputs", temp_ret)
+        self._redis.rpush(f"{method.__qualname__}:outputs", str(temp_ret))
         return temp_ret
     return wrapper
 
@@ -104,19 +120,3 @@ class Cache:
         """ Special case of the method: get """
 
         return self.get(key, fn=int)
-
-    @count_calls
-    @call_history
-    def replay(self, string: Callable) -> None:
-        """
-        A method display the history of calls of a particular function.
-        """
-
-        name = string.__qualname__
-        n_calls = self._redis.get(name).decode('utf-8')
-        print(f"{name} was called {n_calls} times:")
-        inputs_list = self._redis.lrange(f"{name}:inputs", 0, -1)
-        outputs_list = self._redis.lrange(f"{name}:outputs", 0, -1)
-        for i, j in zip(inputs_list, outputs_list):
-            print(
-                f"{name}(*{i.decode('utf-8')}) -> {j.decode('utf-8')}")
