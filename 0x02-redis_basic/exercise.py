@@ -16,7 +16,7 @@ def count_calls(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         self._redis.incrby(method.__qualname__, 1)
-        return method(self, *args, **kwargs)
+        return method(self, *args, **kwargs)  # line 19
     return wrapper
 
 
@@ -37,7 +37,7 @@ def call_history(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(self, *args):
         self._redis.rpush(f"{method.__qualname__}:inputs", str(args[0:2]))
-        temp_ret = method(self, *args)
+        temp_ret = method(self, *args)  # line 40
         self._redis.rpush(f"{method.__qualname__}:outputs", temp_ret)
         return temp_ret
     return wrapper
@@ -54,7 +54,9 @@ class Cache:
 
     @count_calls
     @call_history
-    def store(self, data: Union[str, bytes, int, float]) -> str:
+    def store(self,
+              data: Union[str, bytes, int, float]
+              ) -> str:
         """
         A method store the input data in Redis using the random key
 
@@ -70,7 +72,10 @@ class Cache:
 
     @count_calls
     @call_history
-    def get(self, key: str, fn: Callable[[Any], T] = None) -> Optional[T]:
+    def get(self,
+            key: str,
+            fn: Optional[Callable[[Any], T]] = lambda x: x
+            ) -> Optional[Union[T, bytes]]:
         """
         A method that gets back the data in Redis using provided key
 
@@ -79,7 +84,7 @@ class Cache:
         Return: data
         """
         returned_key = self._redis.get(key)
-        if fn is not None and returned_key:
+        if fn is not None and returned_key is not None:
             returned_key = fn(returned_key)
         return returned_key
 
@@ -96,3 +101,17 @@ class Cache:
         """ Special case of the method: get """
 
         return self.get(key, fn=int)
+
+    def replay(self, string: Callable) -> None:
+        """
+        A method display the history of calls of a particular function.
+        """
+
+        name = string.__qualname__
+        n_calls = self._redis.get(name).decode('utf-8')
+        print(f"{name} was called {n_calls} times:")
+        inputs_list = self._redis.lrange(f"{name}:inputs", 0, -1)
+        outputs_list = self._redis.lrange(f"{name}:outputs", 0, -1)
+        for i, j in zip(inputs_list, outputs_list):
+            print(
+                f"{name}(*{i.decode('utf-8')}) -> {j.decode('utf-8')}")
