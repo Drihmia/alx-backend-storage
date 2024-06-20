@@ -15,6 +15,7 @@ def count_calls(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
+        """ wrapper """
         self._redis.incrby(method.__qualname__, 1)
         return method(self, *args, **kwargs)  # line 19
     return wrapper
@@ -36,6 +37,7 @@ def call_history(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(self, *args):
+        """ wrapper """
         self._redis.rpush(f"{method.__qualname__}:inputs", str(args[0:2]))
         temp_ret = method(self, *args)  # line 40
         self._redis.rpush(f"{method.__qualname__}:outputs", temp_ret)
@@ -102,6 +104,8 @@ class Cache:
 
         return self.get(key, fn=int)
 
+    @count_calls
+    @call_history
     def replay(self, string: Callable) -> None:
         """
         A method display the history of calls of a particular function.
