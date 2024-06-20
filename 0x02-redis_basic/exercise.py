@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """ Task 0 """
-from functools import wraps
-from redis import Redis
+import functools
+import redis
 from typing import Union, Callable, TypeVar, Any, Optional
-from uuid import uuid4
+import uuid
 
 
 T = TypeVar('T')
@@ -13,7 +13,8 @@ def count_calls(method: Callable) -> Callable:
     """
     A decorator that count how many times methods of the Cache class are called
     """
-    @wraps(method)
+
+    @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         """ wrapper """
         self._redis.incrby(method.__qualname__, 1)
@@ -35,7 +36,7 @@ def call_history(method: Callable) -> Callable:
         2) "7d73b286-c2b7-4c20-97e9-98309169ae0d"
         3) "faef27a5-253a-4514-9258-afa2539fc77e"
     """
-    @wraps(method)
+    @functools.wraps(method)
     def wrapper(self, *args):
         """ wrapper """
         self._redis.rpush(f"{method.__qualname__}:inputs", str(args[0:2]))
@@ -50,7 +51,7 @@ class Cache:
 
     def __init__(self):
         """ Init method for class Cache """
-        self._redis = Redis()
+        self._redis = redis.Redis()
         # Cleare the database from all keys.
         self._redis.flushdb()
 
@@ -64,7 +65,7 @@ class Cache:
 
         Return: the random key.
         """
-        random_key = str(uuid4())
+        random_key = str(uuid.uuid4())
         self._redis.set(random_key, data)
 
         # trigger the background save.

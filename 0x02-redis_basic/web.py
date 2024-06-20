@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """ Task 5: Advanced task """
-from functools import wraps
-from redis import Redis
-from requests import get
+import functools
+import redis
+import requests
 from typing import Callable
 
 
 def decorator(method: Callable) -> Callable:
     """ decorator Description """
-    @wraps(method)
+    @functools.wraps(method)
     def wrapper(*args, **kwargs):
         """ wrapper Description """
         if (r.ttl(f"count:{args[-1]}")) == -2:
@@ -23,7 +23,7 @@ def decorator(method: Callable) -> Callable:
 @decorator
 def get_page(url: str) -> str:
     """ Description """
-    with get(url) as res:
+    with requests.get(url) as res:
         if res.status_code == 200:
             return res.text
         else:
@@ -31,7 +31,7 @@ def get_page(url: str) -> str:
 
 
 if __name__ == "__main__":
-    r = Redis()
+    r = redis.Redis()
     base_url = "http://slowwly.robertomurray.co.uk"
     base_url = "http://google.com"
     content = get_page(base_url)
