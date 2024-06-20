@@ -9,17 +9,17 @@ import uuid
 T = TypeVar('T')
 
 
-def replay(self, string: Callable) -> None:
+def replay(string: Callable) -> None:
     """
     A method display the history of calls of a particular function.
     """
-
+    redis_client = redis.Redis()
     name = string.__qualname__
-    n_calls = self._redis.get(name).decode('utf-8')
+    n_calls = redis_client.get(name).decode('utf-8')
 
     print(f"{name} was called {n_calls} times:")
-    inputs_list = self._redis.lrange(f"{name}:inputs", 0, -1)
-    outputs_list = self._redis.lrange(f"{name}:outputs", 0, -1)
+    inputs_list = redis_client.lrange(f"{name}:inputs", 0, -1)
+    outputs_list = redis_client.lrange(f"{name}:outputs", 0, -1)
     for i, j in zip(inputs_list, outputs_list):
         print(
             f"{name}(*{i.decode('utf-8')}) -> {j.decode('utf-8')}")
