@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """ Task 5: Advanced task """
-from redis import Redis
 from functools import wraps
+from redis import Redis
 from requests import get
+from typing import Callable
 
 
-def decorator(method):
+def decorator(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(*args, **kwargs):
         if (r.ttl(f"count:{args[-1]}")) == -2:
