@@ -2,11 +2,8 @@
 """ Task 0 """
 import functools
 import redis
-from typing import Union, Callable, TypeVar, Any, Optional
+from typing import Union, Callable, Optional
 import uuid
-
-
-T = TypeVar('T')
 
 
 def replay(string: Callable) -> None:
@@ -33,7 +30,7 @@ def count_calls(method: Callable) -> Callable:
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         """ wrapper """
-        self._redis.incrby(method.__qualname__, 1)
+        self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)  # line 19
     return wrapper
 
@@ -68,6 +65,7 @@ class Cache:
     def __init__(self):
         """ Init method for class Cache """
         self._redis = redis.Redis()
+
         # Cleare the database from all keys.
         self._redis.flushdb()
 
@@ -84,17 +82,15 @@ class Cache:
         random_key = str(uuid.uuid4())
         self._redis.set(random_key, data)
 
-        # trigger the background save.
-        # self._redis.bgsave()
-
         return random_key
 
     @count_calls
     @call_history
     def get(self,
             key: str,
-            fn: Callable[[Any], T] = lambda x: x
-            ) -> Optional[Union[T, bytes]]:
+            fn: Optional[Callable[[bytes],
+                                  Union[str, int, float, bytes]]] = None
+            ) -> Union[str, int, float, bytes, None]:
         """
         A method that gets back the data in Redis using provided key
 
@@ -103,8 +99,8 @@ class Cache:
         Return: data
         """
         returned_key = self._redis.get(key)
-        if fn is not None and returned_key is not None:
-            returned_key = fn(returned_key)
+        if returned_key is not None and fn is not None:
+            return fn(returned_key)
         return returned_key
 
     @count_calls
