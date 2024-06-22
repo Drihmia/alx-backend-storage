@@ -5,6 +5,8 @@ import redis
 import requests
 from typing import Callable
 
+r = redis.Redis()
+
 
 def decorator(method: Callable) -> Callable:
     """ decorator Description """
@@ -25,13 +27,5 @@ def get_page(url: str) -> str:
 
     with requests.get(url) as res:
         content = res.text
-        r.setex(f"cache:{url}", 10, content)
+        r.setex(f"cache:{url}", 10, str(content))
         return content
-
-
-if __name__ == "__main__":
-    r = redis.Redis()
-    base_url = "http://slowwly.robertomurray.co.uk"
-    base_url = "http://google.com"
-    content = get_page(base_url)
-    # print(content[:10])
